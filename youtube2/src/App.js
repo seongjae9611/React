@@ -1,46 +1,46 @@
 import styles from './app.module.css';
-import { useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import VideoList from './components/video_list/video_list';
 import SearchHeader from './components/search_header/search_header';
+import VideoDetail from './components/video_detail/video_detail';
 
-function App() {
+function App({ youtube }) {
   const [videos, setVideos] = useState([]);
-  const search = query => {
-    const requestOptions = {
-      method: 'GET',
-      redirect: 'follow'
-    };
+  const [selectedVideo, setSelectedVideo] = useState(null);
 
-    fetch(
-      `https://www.googleapis.com/youtube/v3/search?part=snippet&maxResults=25&q=${query}&type=video&key=AIzaSyDMTeVsVBkqu_u8p3PBOLuV3dQlwQ2E6aM`,
-      requestOptions
-    )
-      .then(response => response.json())
-      .then(result => 
-        result.items.map(item => ({...item, id: item.id.videoId}))
-      )
-      .then(items => setVideos(items))
-      .catch(error => console.log('error', error));
+  const selectVideo = video => {
+    setSelectedVideo(video);
+  };
+
+  const search = query => {
+    setSelectedVideo(null);
+    youtube
+      .search(query)
+      .then(videos => setVideos(videos));
   };
 
   useEffect(() => {
-    const requestOptions = {
-      method: 'GET',
-      redirect: 'follow',
-    };
-
-    fetch(
-      'https://www.googleapis.com/youtube/v3/videos?part=snippet&chart=mostPopular&maxResults=25&key=AIzaSyDMTeVsVBkqu_u8p3PBOLuV3dQlwQ2E6aM',
-      requestOptions
-    )
-      .then(response => response.json())
-      .then(result => setVideos(result.items))
-      .catch(error => console.log('error', error));
+    youtube
+      .mostPopular()
+      .then(videos => setVideos(videos));
   }, []);
   return (
     <div className={styles.app}>
-      <SearchHeader onSearch={search}/>
-      <VideoList videos={videos} />
+      <SearchHeader onSearch={search} />
+      <section className={styles.content}>
+        {selectedVideo && (
+          <div className={styles.detail}>
+            <VideoDetail video={selectedVideo} />
+          </div>
+        )}
+        <div className={styles.list}>
+          <VideoList
+            videos={videos}
+            onVideoClick={selectVideo}
+            display={selectedVideo ? 'list' : 'grid'}
+        />
+        </div>
+      </section>
     </div>
   );
 }
