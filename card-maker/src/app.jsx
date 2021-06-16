@@ -3,7 +3,6 @@ import styles from './app.module.css';
 import Login from './components/login/login';
 import Maker from './components/maker/maker';
 import { BrowserRouter, Route, Switch} from 'react-router-dom';
-import CardRepository from './service/card_repository';
 
 function App({FileInput, authService, cardRepository}) {
   return (
